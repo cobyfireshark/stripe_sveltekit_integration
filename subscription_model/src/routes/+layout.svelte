@@ -1,21 +1,33 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount } from "svelte";
+    import { selectedUserStore } from '$lib/stores.js'
     let link;
 
     // Conditionally import link on the client side
     onMount(() => {
-        import('@sveltejs/kit').then(module => {
+        import("@sveltejs/kit").then((module) => {
             link = module.link;
         });
     });
-</script>
+    export let data;
+    let selectedEmail = '';
+    let userPlan = '';
 
+    function handleUserChange(event) {
+        selectedEmail = event.target.value;
+        console.log(`selectedEmail: ${selectedEmail}`)
+        const user = data.users.find(user => user.email === selectedEmail);
+        userPlan = user ? user.plan_id : '';
+        selectedUserStore.set({ email: selectedEmail, plan_id: userPlan })
+    }
+
+</script>
 
 <header>
     <nav>
         <ul>
-            <li><a href="{link ? link('/') : '/'}">Home</a></li>
-            <li><a href="{link ? link('/plan') : '/plan'}">Plan</a></li>
+            <li><a href={link ? link("/") : "/"}>Home</a></li>
+            <li><a href={link ? link("/plan") : "/plan"}>Plan</a></li>
         </ul>
     </nav>
 </header>
@@ -24,6 +36,16 @@
     <!-- This slot will render the contents of the specific page the user navigates to -->
     <slot />
 </main>
+
+<footer>
+    <label for="current_user">Current User:</label>
+    <select id="current_user" bind:value={selectedEmail} on:change={handleUserChange}>
+        {#each data.users as user}
+            <option value={user.email}>{user.email}</option>
+        {/each}
+    </select>
+    <p>User's Plan: {userPlan}</p>
+</footer>
 
 <style>
     header {
