@@ -33,7 +33,29 @@ Stripe has a way to use webhooks while testing:
 stripe listen --forward-to [location route]
 So I set mine to localhost:5173/plan/webhook where my related +server.js is
 All you have to do is run the script start_stripe_hooks.sh
+Note: This must be running while testing Stripe checkout!
 
-There are 10 events received when payment submitted
+There are 10 events received when payment submitted.
+This is [Stripe's Docs on their Webhooks](https://stripe.com/docs/webhooks) but I found it easier just to parse what I got.
 
-Going to save data from customer.subscription.created Stripe endpoint into postgresql database
+Created my database using [PostgreSQL](https://www.postgresql.org/docs/current/)
+database: "user_database"
+Two tables in user_database:
+usr:
+|      Column        |          Type          |
++--------------------+------------------------+
+| email              | character varying(255) |
+| plan_id            | character varying(255) |
+| stripe_customer_id | character varying(255) |
+Foreign-key constraints:
+    "usr_plan_id_fkey" FOREIGN KEY (plan_id) REFERENCES plan_detail(plan_id)
+plan_detail:
+    Column    |          Type          | Collation | Nullable | Default 
+--------------+------------------------+-----------+----------+---------
+ plan_id      | character varying(255) |           | not null | 
+ change_text  | boolean                |           |          | 
+ change_color | boolean                |           |          | 
+Indexes:
+    "plan_detail_pkey" PRIMARY KEY, btree (plan_id)
+Referenced by:
+    TABLE "usr" CONSTRAINT "usr_plan_id_fkey" FOREIGN KEY (plan_id) REFERENCES plan_detail(plan_id)
